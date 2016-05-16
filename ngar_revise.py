@@ -837,7 +837,7 @@ def prob_matrix(alpha_matrix,bin_num):
 if __name__ == "__main__":
 
     x_path = "data/factor.csv"
-    y_path = "data/759funds.csv"
+    y_path = "data/759funds_ma6.csv"
     y_df = pd.read_csv(y_path,index_col=0)
     y_names = y_df.columns
     counter = 0

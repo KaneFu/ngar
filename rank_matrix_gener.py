@@ -39,97 +39,111 @@ y_df2 = pd.read_csv('data/759funds.csv',index_col=0)
 fund_names2 = Series(y_df2.columns)
 fund_names = fund_names2.unique()
 bin_nums = [5,10]
-choose_type = ['median','median_ma6','median_ma12','mean','mean_ma6','mean_ma12']
-alpha_matrix = DataFrame(None)
-for ii in range(len(fund_names)):
-    try:
-        temp_alpha = pd.read_table('all_output/fund_'+fund_names[ii]+'_alpha_median.txt',header =None,names=[fund_names[ii]])
-        #print len(temp_alpha)
-        # print temp_alpha
-        alpha_matrix = pd.merge(alpha_matrix,temp_alpha,how = 'outer',left_index=True,right_index=True)
-    except Exception, e:
-        pass
+choose_types = ['median','median_ma6','median_ma12','mean','mean_ma6','mean_ma12']
+for bin_num in bin_nums:
+    for choose_type in choose_types:
+        alpha_matrix = DataFrame(None)
+        for ii in range(len(fund_names)):
+            try:
+                temp_alpha = pd.read_table('all_output/fund_'+fund_names[ii]+'_alpha_'+choose_type+'.txt',header =None,names=[fund_names[ii]])
+                #print len(temp_alpha)
+                # print temp_alpha
+                alpha_matrix = pd.merge(alpha_matrix,temp_alpha,how = 'outer',left_index=True,right_index=True)
+            except Exception, e:
+                pass
+        
+        folder = ''
+        if bin_num ==5:
+            if choose_type[:4]=='medi':
+                folder = u'五份median/'
+            else:
+                folder = u'五份mean/'
+        else:
+            if choose_type[:4]=='medi':
+                folder = u'十份median/'
+            else:
+                folder = u'十份mean/'
 
 
-	
-fund_time = pd.date_range(start='1996-01-31',end='2015-11-30',freq='M')
-print("total fund num:", alpha_matrix.shape)
-
-alpha_matrix.index = fund_time
-alpha_matrix = alpha_matrix.T
-
-bin_nums = 5
-cmap = plt.cm.cool
-counter=1
-
-shift_months = 36
-prob = prob_matrix(alpha_matrix, bin_nums, shift_months)
-np.savetxt(u'基金三年名次状态转移概率.txt',prob,fmt='%.4f')
-plt.figure(counter)
-counter+=1
-plt.imshow(prob,cmap = cmap)
-plt.title(u'3 years freqency')
-plt.colorbar()
-# plt.show()
-plt.savefig(u'基金三年名次状态转移概率.png')
-plt.close()
-
-cmap = plt.cm.cool
-shift_months = 12
-prob = prob_matrix(alpha_matrix, bin_nums, shift_months)
-np.savetxt(u'基金年度名次状态转移概率.txt',prob,fmt='%.4f')
-plt.figure(counter)
-counter+=1
-plt.imshow(prob,cmap = cmap)
-plt.colorbar()
-plt.title(u'anual freqency')
-# plt.show()
-plt.savefig(u'基金年度名次状态转移概率.png')
-plt.close()
+        fund_time = pd.date_range(start='1996-01-31',end='2015-11-30',freq='M')
+        print("total fund num:", alpha_matrix.shape)
+        
+        alpha_matrix.index = fund_time
+        alpha_matrix = alpha_matrix.T
 
 
-shift_months = 6
-prob = prob_matrix(alpha_matrix, bin_nums, shift_months)
-np.savetxt(u'基金半年名次状态转移概率.txt',prob,fmt='%.4f')
-plt.figure(counter)
-counter+=1
-plt.imshow(prob,cmap = cmap)
-plt.title(u'half year freqency')
-plt.colorbar()
-# plt.show()
-plt.savefig(u'基金半年名次状态转移概率.png')
-plt.close()
-
-shift_months = 3
-prob = prob_matrix(alpha_matrix, bin_nums, shift_months)
-np.savetxt(u'基金季度名次状态转移概率.txt',prob,fmt='%.4f')
-plt.figure(counter)
-counter+=1
-plt.imshow(prob,cmap = cmap)
-plt.title(u'quarter frequency')
-plt.colorbar()
-# plt.show()
-plt.savefig(u'基金季度名次状态转移概率.png')
-plt.close()
-
-shift_months = 1
-prob = prob_matrix(alpha_matrix, bin_nums, shift_months)
-np.savetxt(u'基金月度名次状态转移概率.txt',prob,fmt='%.4f')
-plt.figure(counter)
-counter+=1
-plt.imshow(prob,cmap = cmap)
-plt.title(u'monthly freqency')
-plt.colorbar()
-# plt.show()
-plt.savefig(u'基金月度名次状态转移概率.png')
-plt.close()
-
-
-
-
+        cmap = plt.cm.cool
+        counter=1
+        
+        shift_months = 36
+        prob = prob_matrix(alpha_matrix, bin_num, shift_months)
+        np.savetxt(folder+'nums/'+u'基金三年名次状态转移概率'+choose_type+'.txt',prob,fmt='%.4f')
+        plt.figure(counter)
+        counter+=1
+        plt.imshow(prob,cmap = cmap)
+        plt.title(u'3 years freqency')
+        plt.colorbar()
+        # plt.show()
+        plt.savefig(folder+u'基金三年名次状态转移概率'+choose_type+'.png')
+        plt.close()
+        
+        cmap = plt.cm.cool
+        shift_months = 12
+        prob = prob_matrix(alpha_matrix, bin_num, shift_months)
+        np.savetxt(folder+'nums/'+u'基金年度名次状态转移概率'+choose_type+'.txt',prob,fmt='%.4f')
+        plt.figure(counter)
+        counter+=1
+        plt.imshow(prob,cmap = cmap)
+        plt.colorbar()
+        plt.title(u'anual freqency')
+        # plt.show()
+        plt.savefig(folder+u'基金年度名次状态转移概率'+choose_type+'.png')
+        plt.close()
+        
+        
+        shift_months = 6
+        prob = prob_matrix(alpha_matrix, bin_num, shift_months)
+        np.savetxt(folder+'nums/'+u'基金半年名次状态转移概率'+choose_type+'.txt',prob,fmt='%.4f')
+        plt.figure(counter)
+        counter+=1
+        plt.imshow(prob,cmap = cmap)
+        plt.title(u'half year freqency')
+        plt.colorbar()
+        # plt.show()
+        plt.savefig(folder+u'基金半年名次状态转移概率'+choose_type+'.png')
+        plt.close()
+        
+        shift_months = 3
+        prob = prob_matrix(alpha_matrix, bin_num, shift_months)
+        np.savetxt(folder+'nums/'+u'基金季度名次状态转移概率'+choose_type+'.txt',prob,fmt='%.4f')
+        plt.figure(counter)
+        counter+=1
+        plt.imshow(prob,cmap = cmap)
+        plt.title(u'quarter frequency')
+        plt.colorbar()
+        # plt.show()
+        plt.savefig(folder+u'基金季度名次状态转移概率'+choose_type+'.png')
+        plt.close()
+        
+        shift_months = 1
+        prob = prob_matrix(alpha_matrix, bin_num, shift_months)
+        np.savetxt(folder+'nums/'+u'基金月度名次状态转移概率'+choose_type+'.txt',prob,fmt='%.4f')
+        plt.figure(counter)
+        counter+=1
+        plt.imshow(prob,cmap = cmap)
+        plt.title(u'monthly freqency')
+        plt.colorbar()
+        # plt.show()
+        plt.savefig(folder+u'基金月度名次状态转移概率'+choose_type+'.png')
+        plt.close()
+        
+        
+        
+        
+        
 
 # shift_months = 36
-# prob = prob_matrix(alpha_matrix, bin_nums, shift_months)
+# prob = prob_matrix(alpha_matrix, bin_num, shift_months)
 # np.savetxt(u'基金三年名次状态转移概率.txt',prob,fmt='%.4f')
 # x_list = np.repeat(np.arange(1,bin_nums+1), bin_nums)
 # y_list = np.tile(np.arange(1,bin_nums+1), bin_nums)
