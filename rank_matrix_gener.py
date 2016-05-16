@@ -13,9 +13,11 @@ import cProfile,pstats,StringIO
 import pandas as pd
 from scipy import stats
 
+
+
 def prob_matrix(alpha_matrix,bin_num,shift_num):
     prob_count_matrix = np.zeros((bin_num,bin_num))
-    prob_matrix = np.zeros((bin_num,bin_num))
+    prob_matrix_temp = np.zeros((bin_num,bin_num))
     rank_series = alpha_matrix.apply(lambda x:pd.qcut(x,bin_num))
     rank_matrix = np.array([rank_series[i].labels for i in xrange(len(rank_series))])
 
@@ -26,8 +28,8 @@ def prob_matrix(alpha_matrix,bin_num,shift_num):
     
     for ii  in xrange(bin_num):
         for jj in xrange(bin_num):
-            prob_matrix[ii,jj] = prob_count_matrix[ii,jj]/sum(prob_count_matrix[ii])
-    return prob_matrix
+            prob_matrix_temp[ii,jj] = prob_count_matrix[ii,jj]/sum(prob_count_matrix[ii])
+    return prob_matrix_temp
 
 
 
@@ -36,7 +38,8 @@ def prob_matrix(alpha_matrix,bin_num,shift_num):
 y_df2 = pd.read_csv('data/759funds.csv',index_col=0)
 fund_names2 = Series(y_df2.columns)
 fund_names = fund_names2.unique()
-
+bin_nums = [5,10]
+choose_type = ['median','median_ma6','median_ma12','mean','mean_ma6','mean_ma12']
 alpha_matrix = DataFrame(None)
 for ii in range(len(fund_names)):
     try:
@@ -52,14 +55,8 @@ for ii in range(len(fund_names)):
 fund_time = pd.date_range(start='1996-01-31',end='2015-11-30',freq='M')
 print("total fund num:", alpha_matrix.shape)
 
-# alpha_matrix.plot(legend = False,ylim=[-0.03,0.03],title=u'所有基金alpha',rot=45)
-# alpha_matrix.ix[:,0:30].plot(legend = False,ylim=[-0.03,0.03],title=u'前30支基金alpha',rot=45)
-# alpha_matrix.ix[:,30:].plot(legend = False,ylim=[-0.03,0.03],title=u'后40支基金alpha',rot=45)
 alpha_matrix.index = fund_time
-# alpha_matrix = alpha_matrix.resample('12M',how='mean')
-# alpha_matrix = alpha_matrix.groupby(lambda x: x.year).mean()
-# alpha_matrix = alpha_matrix.resample('3M',how='mean')
-# alpha_matrix = alpha_matrix.T
+alpha_matrix = alpha_matrix.T
 
 bin_nums = 5
 cmap = plt.cm.cool
