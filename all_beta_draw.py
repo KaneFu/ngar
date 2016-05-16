@@ -9,23 +9,23 @@ fund_names = fund_names2.unique()
 ind = y_df2.index
 
 
-funds = {}
-for name in fund_names:
-	funds[name] = []
-	f = open('all_output/fund_'+name+'_beta.txt')
-	cols=-1
-	for line in f.readlines():
-		if line[0]=='b':
-			funds[name].append([])
-			cols=cols+1
-		else:
-			funds[name][cols].append(float(line))
-	f.close()
+# funds = {}
+# for name in fund_names:
+# 	funds[name] = []
+# 	f = open('all_output/fund_'+name+'_beta.txt')
+# 	cols=-1
+# 	for line in f.readlines():
+# 		if line[0]=='b':
+# 			funds[name].append([])
+# 			cols=cols+1
+# 		else:
+# 			funds[name][cols].append(float(line))
+# 	f.close()
 
 alphas = {}
 for name in fund_names:
 	alphas[name]=[]
-	f = open('all_output/fund_'+name+'_alpha_median.txt')
+	f = open('all_output/fund_'+name+'_alpha_median_ma6.txt')
 	for line in f.readlines():
 		alphas[name].append(float(line))
 	f.close()
@@ -67,7 +67,7 @@ for area in linspace:
 	plt.figure(counter)
 	counter+=1
 	df.ix[:,area[0]:area[1]].plot(legend=False,ylim=(-0.03,0.03))
-	png_name = 'alpha'+'from_'+str(area[0])+'to_'+str(area[1])+'.png'
+	png_name = 'alpha'+'from_'+str(area[0])+'to_'+str(area[1])+'ma6.png'
 	plt.savefig('alpha/'+png_name,dpi=100)
 	plt.close()
 
