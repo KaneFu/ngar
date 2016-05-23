@@ -16,6 +16,7 @@ from scipy import stats
 
 
 def prob_matrix(alpha_matrix,bin_num,shift_num):
+    #这里的alpha_matrix应该是 p*T
     prob_count_matrix = np.zeros((bin_num,bin_num))
     prob_matrix_temp = np.zeros((bin_num,bin_num))
     rank_series = alpha_matrix.apply(lambda x:pd.qcut(x,bin_num))
