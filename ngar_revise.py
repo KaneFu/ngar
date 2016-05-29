@@ -837,7 +837,7 @@ def prob_matrix(alpha_matrix,bin_num):
 if __name__ == "__main__":
 
     x_path = "data/factor.csv"
-    y_path = "data/759funds_ma6.csv"
+    y_path = "data/759funds_rf.csv"
     y_df = pd.read_csv(y_path,index_col=0)
     y_names = y_df.columns
     counter = 0
@@ -850,17 +850,5 @@ if __name__ == "__main__":
     end_index=2
     for ii in range(start_index,end_index):
         ykey=y_names[ii]
-        # f = open('profile'+ykey+'.txt','w')
-        # pr = cProfile.Profile()
-        # pr.enable()
-        # if(counter>40):
-        #     break
-        # else:
-        # counter=counter+1
         print "run fund %s" % ykey
         gdp_case = NGAR(x_path,y_path,ykey,0.1,0.1,2000,5000,5)
-        # # print counter
-        # pr.disable()
-        # ps = pstats.Stats(pr,stream=f).strip_dirs().sort_stats('cumulative')
-        # ps.print_stats(0.1)
-        # f.close()
