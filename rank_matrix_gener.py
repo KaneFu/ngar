@@ -13,24 +13,50 @@ import cProfile,pstats,StringIO
 import pandas as pd
 from scipy import stats
 
+def series_to_rank(series,bin_num):
+    # series is series
+    bin_len = alpha_matrix.shape[0]/bin_num
+    origin_index = series.index
+    df = DataFrame(series)
+    df['rank']=1
+    df.columns = ['time','rank']
+    df=df.sort(columns='time',ascending=False)
+    for ii in range(bin_num-1):
+        df['rank'][ii*bin_len:(ii+1)*bin_len]=ii+1
+    df['rank'][(bin_num-1)*bin_len:]=bin_num
+    df['rank'][df['time'].isnull()]=bin_num
+    df = df.reindex(origin_index)
+    return df['rank'].values
 
-
-def prob_matrix(alpha_matrix,bin_num,shift_num):
+def prob_matrix(alpha_matrix,bin_num,shift_num,func):
     prob_count_matrix = np.zeros((bin_num,bin_num))
     prob_matrix_temp = np.zeros((bin_num,bin_num))
-    rank_series = alpha_matrix.apply(lambda x:pd.qcut(x,bin_num))
-    rank_matrix = np.array([rank_series[i].labels for i in xrange(len(rank_series))])
+    rank_matrix = alpha_matrix.apply(func,args=([bin_num]))
+    rank_matrix = rank_matrix.values
+    print rank_matrix.shape
 
-    for ii in xrange(len(rank_matrix)-shift_num):
-        for jj in xrange(len(rank_matrix[0])):
-            if(rank_matrix[ii,jj]!=-1 and rank_matrix[ii+shift_num,jj]!=-1):
-                prob_count_matrix[rank_matrix[ii,jj],rank_matrix[ii+shift_num,jj]] = prob_count_matrix[rank_matrix[ii,jj],rank_matrix[ii+shift_num,jj]]+1
+    for ii in xrange(rank_matrix.shape[0]):
+        for jj in xrange(rank_matrix.shape[1]-shift_num):
+            prob_count_matrix[rank_matrix[ii,jj]-1,rank_matrix[ii,jj+shift_num]-1] = prob_count_matrix[rank_matrix[ii,jj]-1,rank_matrix[ii,jj+shift_num]-1]+1
     
     for ii  in xrange(bin_num):
         for jj in xrange(bin_num):
             prob_matrix_temp[ii,jj] = prob_count_matrix[ii,jj]/sum(prob_count_matrix[ii])
     return prob_matrix_temp
 
+
+
+
+# def prob_matrix(alpha_matrix,bin_num,shift_num):
+#     bin_len = alpha_matrix.shape[0]/bin_num
+#     prob_count_matrix = np.zeros((bin_num,bin_num))
+#     prob_matrix_temp = np.zeros((bin_num,bin_num))
+
+
+#     for ii  in xrange(bin_num):
+#         for jj in xrange(bin_num):
+#             prob_matrix_temp[ii,jj] = prob_count_matrix[ii,jj]/sum(prob_count_matrix[ii])
+#     return prob_matrix_temp
 
 
 # y_df1 = pd.read_csv('data/fund.csv',index_col=0)
@@ -76,65 +102,65 @@ for bin_num in bin_nums:
         counter=1
         
         shift_months = 36
-        prob = prob_matrix(alpha_matrix, bin_num, shift_months)
-        np.savetxt(folder+'nums/'+u'基金三年名次状态转移概率'+choose_type+'.txt',prob,fmt='%.4f')
+        prob = prob_matrix(alpha_matrix, bin_num, shift_months,series_to_rank)
+        np.savetxt(folder+'nums/'+u'三年转移概率'+choose_type+'.txt',prob,fmt='%.4f')
         plt.figure(counter)
         counter+=1
         plt.imshow(prob,cmap = cmap)
         plt.title(u'3 years freqency')
         plt.colorbar()
         # plt.show()
-        plt.savefig(folder+u'基金三年名次状态转移概率'+choose_type+'.png')
+        plt.savefig(folder+u'三年转移概率'+choose_type+'.png')
         plt.close()
         
         cmap = plt.cm.cool
         shift_months = 12
-        prob = prob_matrix(alpha_matrix, bin_num, shift_months)
-        np.savetxt(folder+'nums/'+u'基金年度名次状态转移概率'+choose_type+'.txt',prob,fmt='%.4f')
+        prob = prob_matrix(alpha_matrix, bin_num, shift_months,series_to_rank)
+        np.savetxt(folder+'nums/'+u'年度转移概率'+choose_type+'.txt',prob,fmt='%.4f')
         plt.figure(counter)
         counter+=1
         plt.imshow(prob,cmap = cmap)
         plt.colorbar()
         plt.title(u'anual freqency')
         # plt.show()
-        plt.savefig(folder+u'基金年度名次状态转移概率'+choose_type+'.png')
+        plt.savefig(folder+u'年度转移概率'+choose_type+'.png')
         plt.close()
         
         
         shift_months = 6
-        prob = prob_matrix(alpha_matrix, bin_num, shift_months)
-        np.savetxt(folder+'nums/'+u'基金半年名次状态转移概率'+choose_type+'.txt',prob,fmt='%.4f')
+        prob = prob_matrix(alpha_matrix, bin_num, shift_months,series_to_rank)
+        np.savetxt(folder+'nums/'+u'半年转移概率'+choose_type+'.txt',prob,fmt='%.4f')
         plt.figure(counter)
         counter+=1
         plt.imshow(prob,cmap = cmap)
         plt.title(u'half year freqency')
         plt.colorbar()
         # plt.show()
-        plt.savefig(folder+u'基金半年名次状态转移概率'+choose_type+'.png')
+        plt.savefig(folder+u'半年转移概率'+choose_type+'.png')
         plt.close()
         
         shift_months = 3
-        prob = prob_matrix(alpha_matrix, bin_num, shift_months)
-        np.savetxt(folder+'nums/'+u'基金季度名次状态转移概率'+choose_type+'.txt',prob,fmt='%.4f')
+        prob = prob_matrix(alpha_matrix, bin_num, shift_months,series_to_rank)
+        np.savetxt(folder+'nums/'+u'季度转移概率'+choose_type+'.txt',prob,fmt='%.4f')
         plt.figure(counter)
         counter+=1
         plt.imshow(prob,cmap = cmap)
         plt.title(u'quarter frequency')
         plt.colorbar()
         # plt.show()
-        plt.savefig(folder+u'基金季度名次状态转移概率'+choose_type+'.png')
+        plt.savefig(folder+u'季度转移概率'+choose_type+'.png')
         plt.close()
         
         shift_months = 1
-        prob = prob_matrix(alpha_matrix, bin_num, shift_months)
-        np.savetxt(folder+'nums/'+u'基金月度名次状态转移概率'+choose_type+'.txt',prob,fmt='%.4f')
+        prob = prob_matrix(alpha_matrix, bin_num, shift_months,series_to_rank)
+        np.savetxt(folder+'nums/'+u'月度转移概率'+choose_type+'.txt',prob,fmt='%.4f')
         plt.figure(counter)
         counter+=1
         plt.imshow(prob,cmap = cmap)
         plt.title(u'monthly freqency')
         plt.colorbar()
         # plt.show()
-        plt.savefig(folder+u'基金月度名次状态转移概率'+choose_type+'.png')
+        plt.savefig(folder+u'月度转移概率'+choose_type+'.png')
         plt.close()
         
         
@@ -142,7 +168,7 @@ for bin_num in bin_nums:
         
         
 # shift_months = 36
-# prob = prob_matrix(alpha_matrix, bin_num, shift_months)
+# prob = prob_matrix(a,series_to_ranklpha_matrix, bin_num, shift_months)
 # np.savetxt(u'基金三年名次状态转移概率.txt',prob,fmt='%.4f')
 # x_list = np.repeat(np.arange(1,bin_nums+1), bin_nums)
 # y_list = np.tile(np.arange(1,bin_nums+1), bin_nums)
