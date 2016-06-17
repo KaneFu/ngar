@@ -12,6 +12,7 @@ from pandas import DataFrame,Series
 import cProfile,pstats,StringIO
 import pandas as pd
 from scipy import stats
+<<<<<<< HEAD
 #所有组参加排序,没有数据的组自动变为-1
 def series_to_rank(series,bin_num):
     # series is series
@@ -29,6 +30,8 @@ def series_to_rank(series,bin_num):
     return df['rank'].values
 
 def prob_matrix(alpha_matrix,bin_num,shift_num,func):
+
+    #这里的alpha_matrix应该是 p*T
     prob_count_matrix = np.zeros((bin_num,bin_num))
     prob_matrix_temp = np.zeros((bin_num,bin_num))
     rank_matrix = alpha_matrix.apply(func,args=([bin_num]))
@@ -173,6 +176,7 @@ for bin_num in bin_nums:
         
         
         
+
 # shift_months = 36
 # prob = prob_matrix(a,series_to_ranklpha_matrix, bin_num, shift_months)
 # np.savetxt(u'基金三年名次状态转移概率.txt',prob,fmt='%.4f')
