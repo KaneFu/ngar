@@ -12,7 +12,7 @@ from pandas import DataFrame,Series
 import cProfile,pstats,StringIO
 import pandas as pd
 from scipy import stats
-
+#所有组参加排序,没有数据的组自动变为-1
 def series_to_rank(series,bin_num):
     # series is series
     bin_len = alpha_matrix.shape[0]/bin_num
@@ -24,7 +24,7 @@ def series_to_rank(series,bin_num):
     for ii in range(bin_num-1):
         df['rank'][ii*bin_len:(ii+1)*bin_len]=ii+1
     df['rank'][(bin_num-1)*bin_len:]=bin_num
-    df['rank'][df['time'].isnull()]=bin_num
+    df['rank'][df['time'].isnull()]=-1
     df = df.reindex(origin_index)
     return df['rank'].values
 
@@ -37,7 +37,13 @@ def prob_matrix(alpha_matrix,bin_num,shift_num,func):
 
     for ii in xrange(rank_matrix.shape[0]):
         for jj in xrange(rank_matrix.shape[1]-shift_num):
-            prob_count_matrix[rank_matrix[ii,jj]-1,rank_matrix[ii,jj+shift_num]-1] = prob_count_matrix[rank_matrix[ii,jj]-1,rank_matrix[ii,jj+shift_num]-1]+1
+            #死亡的基金会给末尾统计加一
+            if rank_matrix[ii,jj]==-1:
+                prob_count_matrix[4,4] = prob_count_matrix[4,4]+1
+            elif rank_matrix[ii,jj+shift_num] == -1:
+                prob_count_matrix[rank_matrix[ii,jj]-1,4] = prob_count_matrix[rank_matrix[ii,jj]-1,4]+1
+            else:
+                prob_count_matrix[rank_matrix[ii,jj]-1,rank_matrix[ii,jj+shift_num]-1] = prob_count_matrix[rank_matrix[ii,jj]-1,rank_matrix[ii,jj+shift_num]-1]+1
     
     for ii  in xrange(bin_num):
         for jj in xrange(bin_num):
