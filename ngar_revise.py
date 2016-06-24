@@ -25,8 +25,8 @@ class NGAR():
     def __init__(self,x_path,y_path,ykey,mu_mean,mu_lambda_star,burnin,numofits,every):
         # x_list size: T*p; y_list
         self.x_list,self.y_list = self.Load_y_x(x_path, y_path, ykey)
-        print "x_list.shape: ",self.x_list.shape
-        print "y_list.shape: ",self.y_list.shape
+        # print "x_list.shape: ",self.x_list.shape
+        # print "y_list.shape: ",self.y_list.shape
         # print self.x_list
         # print self.y_list
         self.mu_mean = mu_mean
