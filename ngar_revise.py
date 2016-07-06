@@ -9,7 +9,6 @@
 
 import numpy as np
 import copy
-import scipy.io as sio
 import math
 import random
 import datetime
@@ -17,18 +16,22 @@ import matplotlib.pyplot as plt
 import copy
 import time
 from pandas import DataFrame,Series
-import cProfile,pstats,StringIO
 import pandas as pd
 from scipy import stats
+import threading
 
 class NGAR():
-    def __init__(self,x_path,y_path,ykey,mu_mean,mu_lambda_star,burnin,numofits,every):
+    def __init__(self,x_df,y_df,ykey,mu_mean,mu_lambda_star,burnin,numofits,every):
         # x_list size: T*p; y_list
+<<<<<<< HEAD
         self.x_list,self.y_list = self.Load_y_x(x_path, y_path, ykey)
         # print "x_list.shape: ",self.x_list.shape
         # print "y_list.shape: ",self.y_list.shape
         # print self.x_list
         # print self.y_list
+=======
+        self.x_list,self.y_list = self.Load_y_x(x_df, y_df, ykey)
+>>>>>>> dev
         self.mu_mean = mu_mean
         self.mu_lambda_star = mu_lambda_star
         self.numofits = numofits
@@ -143,8 +146,8 @@ class NGAR():
         #注意，迭代次数的下标是从1开始
         for it in xrange(1,self.number_of_iteration+1):
             # iteration
-            if it%100==0:
-                print "start %s th iteration:\n" %it
+            # if it%100==0:
+            #     print "start %s th iteration:\n" %it
                 #print self.beta
             if self.check_star ==1:
                 # run iteration
@@ -152,8 +155,8 @@ class NGAR():
                 self.UpdateKappa(it)
                 self.UpdateSigmaSq(it)
                 self.UpdateKappaSigmaSq(it)
-            else:
-                print "check star = 0. \n"
+            # else:
+            #     print "check star = 0. \n"
             self.UpdateTheta(it)
             self.UpdateMuStar(it)
             self.UpdateLambdaStar(it)
@@ -669,8 +672,8 @@ class NGAR():
         if self.check_star == 1 and sum(sum(np.isnan(new_beta))) == 0 and self.CheckBeta(new_beta):
             #print "update beta"
             self.beta[:, z_star == 1] = copy.deepcopy(new_beta)
-        else:
-            print "not update beta"
+        # else:
+        #     print "not update beta"
 
     def CheckBeta(self, beta):
         for ii in xrange(len(beta)):
@@ -749,61 +752,51 @@ class NGAR():
 
         final_beta_median = np.median(self.hold_beta, axis=2)
         final_beta_mean = np.mean(self.hold_beta,axis=2)
-        # 存储中位数的alpha
-        outfile = open('output/fund_'+self.ykey+'_alpha_median.txt', 'w')
-        np.savetxt(outfile, final_beta_median[:,0])
-        outfile.close()
-        # 存储平均数的alpha
-        outfile = open('output/fund_'+self.ykey+'_alpha_mean.txt', 'w')
-        np.savetxt(outfile, final_beta_mean[:,0])
-        outfile.close()
+        #Convergence Diagnostic
+        check_s1 = self.hold_beta[:,:,:500]
+        check_s2 = self.hold_beta[:,:,500:3000]
+        check_s3 = self.hold_beta[:,:,3000:]
+        np.save(self.ykey+'check_s1', check_s1)
+        np.save(self.ykey+'check_s2', check_s2)
+        np.save(self.ykey+'check_s3', check_s3)
+        # print "#########Convergence Diagnostic        #########  "
+        # # print "S1 is :"
+        # # print check_s1
+        # # print "S2 is :"
+        # # print check_s2
+        # # print "S3 is :"
+        # # print check_s3
+        # # 存储中位数的alpha
+        # outfile = open('output/fund_'+self.ykey+'_alpha_median.txt', 'w')
+        # np.savetxt(outfile, final_beta_median[:,0])
+        # outfile.close()
+        # # 存储平均数的alpha
+        # outfile = open('output/fund_'+self.ykey+'_alpha_mean.txt', 'w')
+        # np.savetxt(outfile, final_beta_mean[:,0])
+        # outfile.close()
 
-        outfile = open('output/fund_'+self.ykey+'_beta.txt', 'w')
-        for ii in xrange(self.p):
-            plt.figure(ii+1)
-            plt.plot(final_beta_median[:,ii])
-            plt.title("beta"+str(ii+1))
-            plt.xlabel("T")
-            plt.ylabel("beta")
-            png_name = "output/"+"fund_"+ykey+"beta"+str(ii+1)+".png"
-            plt.savefig(png_name, dpi=100)
-            plt.close()
-            if ii>0:
-                outfile.write("beta"+str(ii+1)+'\n')
-                np.savetxt(outfile, final_beta_median[:,ii])
-        outfile.close()
+        # outfile = open('output/fund_'+self.ykey+'_beta.txt', 'w')
+        # for ii in xrange(self.p):
+        #     # plt.figure(ii+1)
+        #     # plt.plot(final_beta_median[:,ii])
+        #     # plt.title("beta"+str(ii+1))
+        #     # plt.xlabel("T")
+        #     # plt.ylabel("beta")
+        #     # png_name = "output/"+"fund_"+ykey+"beta"+str(ii+1)+".png"
+        #     # plt.savefig(png_name, dpi=100)
+        #     # plt.close()
+        #     if ii>0:
+        #         outfile.write("beta"+str(ii+1)+'\n')
+        #         np.savetxt(outfile, final_beta_median[:,ii])
+        # outfile.close()
 
             # outfile.write('# beta'+str(ii+1)+'\n')
 
-
-    def LoadData(self, x_path, y_path):
-        x_origin_list = sio.loadmat(x_path)['data']
-        y_origin_list = sio.loadmat(y_path)['target']
-        y_list = np.zeros(len(y_origin_list))
-
-        for ii in xrange(len(y_origin_list)):
-            y_list[ii] = y_origin_list[ii][0]
-
-        y_list= (y_list-np.mean(y_list))/np.std(y_list,ddof=1)
-
-        for ii in xrange(len(x_origin_list[0])):
-            x_origin_list[:,ii] = copy.deepcopy((x_origin_list[:,ii]-np.mean(x_origin_list[:,ii]))/np.std(x_origin_list[:,ii],ddof =1))
-        x_list = np.concatenate((np.array([np.ones(len(x_origin_list))]).T,x_origin_list),axis=1)
-
-        return x_list,y_list
-
 #从Excel基金数据读取Y，ykey是sheetname，指哪只基金
-    def Load_y_x(self,x_path,y_path,ykey):
-        y_df = pd.read_csv(y_path,index_col=0)
-        y_df.index = pd.to_datetime(y_df.index,format = '%m/%d/%y')
-        
+    def Load_y_x(self,x_df,y_df,ykey):
         y = DataFrame(y_df[ykey])
         y.index=pd.to_datetime(y_df.index,format = '%Y-%m-%d')
         y = y.resample('M',how='first',kind='period')
-
-        x_df = pd.read_csv(x_path,index_col=0)
-        x_df.index = pd.to_datetime(x_df.index,format = '%m/%d/%y')
-        x_df = x_df.resample('M',how='first',kind='period')
 
         yx = pd.merge(y,x_df,left_index=True,right_index=True)
         yx = yx.dropna(axis=0,how='any')
@@ -813,42 +806,29 @@ class NGAR():
         return x_list,y_list
 
 
-
-#概率转移矩阵
-#alpha_matrix列是时间，横轴是基金代码,是pd的DataFrame
-def prob_matrix(alpha_matrix,bin_num):
-    prob_count_matrix = np.zeros((bin_num,bin_num))
-    prob_matrix = np.zeros((bin_num,bin_num))
-    rank_series = alpha_matrix.apply(lambda x:pd.qcut(x,bin_num))
-    rank_matrix = np.array([rank_series[i].labels for i in xrange(len(rank_series))])
-
-    for ii in xrange(len(rank_matrix)-1):
-        for jj in xrange(len(rank_matrix[0])):
-            if(rank_matrix[ii,jj]!=-1 and rank_matrix[ii+1,jj]!=-1):
-                prob_count_matrix[rank_matrix[ii,jj],rank_matrix[ii+1,jj]] = prob_count_matrix[rank_matrix[ii,jj],rank_matrix[ii+1,jj]]+1
-    
-    for ii  in xrange(bin_num):
-        for jj in xrange(bin_num):
-            prob_matrix[ii,jj] = prob_count_matrix[ii,jj]/sum(prob_count_matrix[ii])
-    return prob_matrix
-
-
-
 if __name__ == "__main__":
+    x_path = "data/factor2.csv"
+    y_path = "data/fund_return.csv"
 
-    x_path = "data/factor.csv"
-    y_path = "data/759funds_rf.csv"
     y_df = pd.read_csv(y_path,index_col=0)
-    y_names = y_df.columns
+    y_df.index = pd.date_range(start='1962/01/01',end='2016/04/01',freq='M')
+    x_df = pd.read_csv(x_path,index_col=0)
+    x_df.index = pd.to_datetime(x_df.index,format = '%m/%d/%y')
+    x_df = x_df.resample('M',how='first',kind='period')
+
+    y_names = y_df.columns[[70,185,379]]
     counter = 0
 
     # ykey = '167'    #基金代码
     print "start:\n"
     # for ii in range(58,len(y_names)):
     #不同的服务器可以分配不同的区间(start,end)
-    start_index=0
-    end_index=2
-    for ii in range(start_index,end_index):
-        ykey=y_names[ii]
-        print "run fund %s" % ykey
-        gdp_case = NGAR(x_path,y_path,ykey,0.1,0.1,2000,5000,5)
+    threads = []
+    for ykey in y_names:
+        t= threading.Thread(target=NGAR,args=(x_df,y_df,ykey,0.1,0.1,4000,5000,5))
+        threads.append(t)
+    for thread in threads:
+        thread.start()
+    for thread in threads:
+        thread.join()
+        
