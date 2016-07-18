@@ -20,7 +20,9 @@ from pandas import DataFrame,Series
 import pandas as pd
 from scipy import stats
 import sys
-import threading
+# import threading
+import pickle
+import multiprocessing as mp
 
 class NGAR():
     def __init__(self,x_df,y_df,ykey,mu_mean,mu_lambda_star,burnin,numofits,every):
@@ -809,7 +811,9 @@ class NGAR():
         
         return x_list,y_list
 
-def run(y_names,start_index,end_index,x_df,y_df):
+def run(interval):
+    start_index = interval[0]
+    end_index = interval[1]
     for ii in range(start_index,end_index):
         ykey = y_names[ii]
         print "runone"
@@ -826,24 +830,31 @@ if __name__ == "__main__":
     x_df.index = pd.to_datetime(x_df.index,format = '%m/%d/%y')
     x_df = x_df.resample('M',how='first',kind='period')
     x_df = x_df['2011':] #只取2011年之后的数据
+    with open('fund_left','r') as f:
+        y_names = pickle.load(f)
 
-    y_names = y_df.columns
+    y_names = list(y_df.columns)
     counter = 0
-    threads = []
+    # threads = []
 
     # ykey = '167'    #基金代码
     print "start:\n"
-    all_index = [(ii*200,(ii+1)*200) for ii in range(6)]
-    t1 = ctime()
-    #不同的服务器可以分配不同的区间(start,end)
-    for index_range in all_index:
-        t = threading.Thread(target=run,args=(y_names,index_range[0],index_range[1],x_df,y_df))
-        threads.append(t)
-    
-    for thread in threads:
-        thread.start()
-    for thread in threads:
-        thread.join()
-    t2 = ctime()
-    print t1
-    print t2
+    # all_index = [(ii*200,(ii+1)*200) for ii in range(6)]
+    start_index = int(sys.argv[1])
+    end_index = int(sys.argv[2])
+    run((start_index,end_index))
+    # interval = (end_index-start_index)/12
+    # interval_num = [start_index+interval*i for i in range(12)]
+    # interval_num.append(end_index)
+    # print interval_num
+    # intervals = [(interval_num[i],interval_num[i+1]) for i in range(12)]
+
+    # # t1 = ctime()
+    # pool = mp.Pool(processes=12)
+    # pool_outputs = pool.map(run, intervals)
+    # pool.close()
+    # pool.join()
+
+    # t2 = ctime()
+    # print t1
+    # print t2
